@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دوز</title>
+
+<!-- ✅ کد یکتانت فقط یک‌بار -->
+<script>
+!function(e,t,n){
+  e.yektanetAnalyticsObject=n;
+  e[n]=e[n]||function(){e[n].q.push(arguments)};
+  e[n].q=e[n].q||[];
+  var a=t.getElementsByTagName("head")[0],
+      r=new Date,
+      c="https://cdn.yektanet.com/superscript/QbmZ9Sgl/native-pixelforge-ux.github.io-44538/yn_pub.js?v="
+        +r.getFullYear().toString()+"0"+r.getMonth()+"0"+r.getDate()+"0"+r.getHours(),
+      s=t.createElement("link");
+  s.rel="preload";
+  s.as="script";
+  s.href=c;
+  a.appendChild(s);
+  var l=t.createElement("script");
+  l.async=!0;
+  l.src=c;
+  a.appendChild(l);
+}(window,document,"yektanet");
+</script>
+
+<style>
+body {
+  margin:0; padding:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:flex-start;
+  min-height:100vh;
+  font-family:sans-serif;
+  background:linear-gradient(135deg,#ff9a9e,#fad0c4);
+  transition:background 0.5s;
+}
+h1 { color:white; margin:20px 0 10px; font-size:2em; text-shadow:1px 1px 5px #000; }
+button {
+  padding:10px 20px; margin:5px; border:none; border-radius:8px;
+  cursor:pointer; font-size:1em;
+  background:#ffffff88; color:#333;
+  transition:0.3s; font-weight:bold;
+}
+button:hover { transform:scale(1.05); background:#ffffffcc; }
+#menu, #settings, #game, #history {
+  display:none; flex-direction:column; align-items:center;
+}
+#board {
+  display:grid; gap:10px; margin-top:20px;
+  opacity:0; transform:scale(0.8);
+  transition:all 0.5s ease;
+}
+#board.show { opacity:1; transform:scale(1); }
+.cell {
+  background:#fff; display:flex;
+  justify-content:center; align-items:center;
+  font-size:2em; cursor:pointer;
+  transition:transform 0.3s, box-shadow 0.3s;
+  border-radius:10px; font-weight:bold;
+}
+.cell.animate {
+  transform:scale(1.3);
+  box-shadow:0 0 20px rgba(0,0,0,0.3);
+}
+#line {
+  position:absolute; height:5px; background:gold;
+  transform-origin:left center; transition:all 0.5s ease;
+  display:none; z-index:2; border-radius:2px;
+}
+label { color:white; margin:5px; }
+select, input[type=color] { padding:5px; border-radius:5px; }
+#status {
+  color:white; font-size:1.2em; margin-top:15px;
+  text-shadow:1px 1px 3px #000;
+}
+#scoreboard { color:white; margin-top:10px; font-size:1.1em; font-weight:bold; }
+.theme-classic { background:linear-gradient(135deg,#ff9a9e,#fad0c4); }
+.theme-dark { background:linear-gradient(135deg,#232526,#414345); }
+.theme-neon { background:linear-gradient(135deg,#00f260,#0575e6); }
+#history { max-width:300px; text-align:center; }
+#history ul { list-style:none; padding:0; max-height:200px; overflow-y:auto; width:100%; }
+#history li {
+  background:#ffffff33; margin:3px 0; padding:5px;
+  border-radius:5px; font-size:0.9em;
+}
+</style>
+</head>
+<body>
+
+<h1>دوز</h1>
+
+<div id="menu">
+  <button onclick="startGame('human')">بازی دو نفره</button>
+  <button onclick="startGame('ai')">بازی با ربات</button>
+  <button onclick="showSettings()">تنظیمات</button>
+  <button onclick="showHistory()">تاریخچه بازی‌ها</button>
+
+  <!-- تبلیغ یکتانت -->
+  <div id="ad-container" style="margin-top:15px;">
+    <script type="text/javascript" src="https://cdn.yektanet.com/js/native-pixelforge-ux.github.io/native-ads.js"></script>
+  </div>
+</div>
+
+<div id="settings">
+  <label>اندازه جدول:
+    <select id="boardSize">
+      <option value="3">۳×۳</option>
+      <option value="4">۴×۴</option>
+      <option value="5">۵×۵</option>
+    </select>
+  </label>
+  <label>رنگ بازیکن X: <input type="color" id="colorX"></label>
+  <label>رنگ بازیکن O: <input type="color" id="colorO"></label>
+  <label>سختی ربات:
+    <select id="difficulty">
+      <option value="easy">آسان</option>
+      <option value="medium">متوسط</option>
+      <option value="hard">سخت</option>
+    </select>
+  </label>
+  <label>پوسته:
+    <select id="theme">
+      <option value="classic">کلاسیک</option>
+      <option value="dark">تاریک</option>
+      <option value="neon">نئون</option>
+    </select>
+  </label>
+  <label>نمایش X/O یا اموجی:
+    <select id="symbolMode">
+      <option value="classic">X/O</option>
+      <option value="emoji">🎯/🎮</option>
+      <option value="emoji2">❤️/💎</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="musicToggle"> موسیقی پس‌زمینه</label>
+  <button onclick="backToMenu()">بازگشت به منو</button>
+</div>
+
+<div id="game">
+  <div id="board"></div>
+  <div id="line"></div>
+  <p id="status"></p>
+  <div id="scoreboard">X: 0 | O: 0</div>
+  <button onclick="backToMenu()">بازگشت به منو</button>
+  <button onclick="resetGame()">بازنشانی بازی</button>
+</div>
+
+<div id="history">
+  <h2>تاریخچه بازی‌ها</h2>
+  <ul id="historyList"></ul>
+  <button onclick="hideHistory()">بستن</button>
+</div>
+
+<audio id="bgMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
+<audio id="clickSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+<audio id="winSound" src="https://actions.google.com/sounds/v1/cartoon/concussive_drum_hit.ogg"></audio>
+
+<script>
+let board = [];
+let currentPlayer = "X";
+let gameOver = false;
+let boardElement = document.getElementById("board");
+let playerColors = { X: "#ff0000", O: "#0000ff" };
+let gameMode = "human";
+let difficulty = "easy";
+let boardSize = 3;
+let scores = { X: 0, O: 0 };
+let symbolMode = "classic";
+let symbols = { X: "X", O: "O" };
+
+const bgMusic = document.getElementById("bgMusic");
+const musicToggle = document.getElementById("musicToggle");
+
+function showMenu() {
+  document.getElementById("menu").style.display = "flex";
+  document.getElementById("settings").style.display = "none";
+  document.getElementById("game").style.display = "none";
+  document.getElementById("history").style.display = "none";
+}
+function showSettings() {
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("settings").style.display = "flex";
+  document.getElementById("game").style.display = "none";
+  document.getElementById("history").style.display = "none";
+}
+function showHistory(){
+  document.getElementById("menu").style.display="none";
+  document.getElementById("history").style.display="flex";
+}
+function hideHistory(){
+  document.getElementById("history").style.display="none";
+  document.getElementById("menu").style.display="flex";
+}
+function backToMenu(){ showMenu(); }
+
+musicToggle.addEventListener("change",()=>{
+  if(musicToggle.checked){
+    bgMusic.play().catch(()=>{});
+    localStorage.setItem("musicOn","true");
+  } else {
+    bgMusic.pause();
+    localStorage.setItem("musicOn","false");
+  }
+});
+
+document.getElementById("colorX").addEventListener("change",()=>{
+  playerColors.X=document.getElementById("colorX").value;
+  localStorage.setItem("colorX",playerColors.X);
+  createBoard();
+});
+document.getElementById("colorO").addEventListener("change",()=>{
+  playerColors.O=document.getElementById("colorO").value;
+  localStorage.setItem("colorO",playerColors.O);
+  createBoard();
+});
+document.getElementById("difficulty").addEventListener("change",()=>{difficulty=document.getElementById("difficulty").value;});
+document.getElementById("boardSize").addEventListener("change",()=>{boardSize=parseInt(document.getElementById("boardSize").value);});
+document.getElementById("theme").addEventListener("change",()=>{
+  let theme=document.getElementById("theme").value;
+  document.body.className="theme-"+theme;
+  localStorage.setItem("theme",theme);
+});
+document.getElementById("symbolMode").addEventListener("change",()=>{
+  symbolMode=document.getElementById("symbolMode").value;
+  if(symbolMode==="classic"){ symbols={X:"X",O:"O"};}
+  else if(symbolMode==="emoji"){ symbols={X:"🎯",O:"🎮"};}
+  else if(symbolMode==="emoji2"){ symbols={X:"❤️",O:"💎"};}
+  localStorage.setItem("symbolMode",symbolMode);
+  createBoard();
+});
+
+function startGame(mode){
+  gameMode = mode;
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("game").style.display = "flex";
+  document.getElementById("settings").style.display = "none";
+  document.getElementById("history").style.display = "none";
+  board = Array(boardSize*boardSize).fill("");
+  currentPlayer = "X";
+  gameOver = false;
+  createBoard();
+  updateStatus();
+  if(musicToggle.checked){ bgMusic.play().catch(()=>{}); }
+  setTimeout(()=>boardElement.classList.add("show"),50);
+}
+
+function createBoard(){
+  boardElement.innerHTML="";
+  boardElement.style.gridTemplateColumns=`repeat(${boardSize},80px)`;
+  boardElement.style.gridTemplateRows=`repeat(${boardSize},80px)`;
+  board.forEach((cell,index)=>{
+    const cellDiv=document.createElement("div");
+    cellDiv.classList.add("cell");
+    cellDiv.innerText=cell?symbols[cell]:"";
+    if(cell) cellDiv.style.color=playerColors[cell];
+    cellDiv.addEventListener("click",()=>handleMove(index));
+    boardElement.appendChild(cellDiv);
+  });
+}
+
+function handleMove(index){
+  if(board[index]||gameOver) return;
+  document.getElementById("clickSound").play();
+  board[index]=currentPlayer;
+  createBoard();
+  if(checkWinner(currentPlayer)){
+    gameOver=true;
+    scores[currentPlayer]++;
+    updateScoreboard();
+    animateWinningCells(currentPlayer);
+    document.getElementById("status").innerText=`🎉 بازیکن ${currentPlayer} برنده شد!`;
+    document.getElementById("winSound").play();
+    addHistory(`بازیکن ${currentPlayer} برد`);
+    return;
+  }
+  if(!board.includes("")){
+    gameOver=true;
+    document.getElementById("status").innerText="🤝 بازی مساوی شد!";
+    addHistory("بازی مساوی شد");
+    return;
+  }
+  currentPlayer=currentPlayer==="X"?"O":"X";
+  updateStatus();
+  if(gameMode==="ai"&&currentPlayer==="O"&&!gameOver){ aiMove(); }
+}
+
+function aiMove(){
+  const empty=board.map((v,i)=>v===""?i:null).filter(v=>v!==null);
+  if(empty.length===0)return;
+  let move;
+  if(difficulty==="easy"){
+    move=empty[Math.floor(Math.random()*empty.length)];
+  }else if(difficulty==="medium"){
+    move=mediumAI(empty);
+  }else{
+    move=hardAI();
+  }
+  setTimeout(()=>handleMove(move),500);
+}
+
+function mediumAI(empty){
+  for(let i of empty){
+    board[i]=currentPlayer;
+    if(checkWinner(currentPlayer)){ board[i]=""; return i; }
+    board[i]=currentPlayer==="X"?"O":"X";
+    if(checkWinner(currentPlayer==="X"?"O":"X")){ board[i]=""; return i; }
+    board[i]="";
+  }
+  return empty[Math.floor(Math.random()*empty.length)];
+}
+
+function hardAI(){
+  let bestScore=-Infinity,move;
+  for(let i=0;i<board.length;i++){
+    if(board[i]===""){
+      board[i]="O";
+      let score=minimax(board,0,false);
+      board[i]="";
+      if(score>bestScore){ bestScore=score; move=i; }
+    }
+  }
+  return move;
+}
+
+function minimax(newBoard,depth,isMaximizing){
+  if(checkWinner("O")) return 10-depth;
+  if(checkWinner("X")) return depth-10;
+  if(!newBoard.includes("")) return 0;
+  if(isMaximizing){
+    let bestScore=-Infinity;
+    for(let i=0;i<newBoard.length;i++){
+      if(newBoard[i]===""){
+        newBoard[i]="O";
+        let score=minimax(newBoard,depth+1,false);
+        newBoard[i]="";
+        bestScore=Math.max(score,bestScore);
+      }
+    }
+    return bestScore;
+  }else{
+    let bestScore=Infinity;
+    for(let i=0;i<newBoard.length;i++){
+      if(newBoard[i]===""){
+        newBoard[i]="X";
+        let score=minimax(newBoard,depth+1,true);
+        newBoard[i]="";
+        bestScore=Math.min(score,bestScore);
+      }
+    }
+    return bestScore;
+  }
+}
+
+function checkWinner(player){
+  let winLength=boardSize===3?3:(boardSize===4?4:5);
+  let lines=[];
+  for(let r=0;r<boardSize;r++){
+    for(let c=0;c<=boardSize-winLength;c++){
+      let line=[];for(let k=0;k<winLength;k++)line.push(r*boardSize+c+k);
+      lines.push(line);
+    }
+  }
+  for(let c=0;c<boardSize;c++){
+    for(let r=0;r<=boardSize-winLength;r++){
+      let line=[];for(let k=0;k<winLength;k++)line.push((r+k)*boardSize+c);
+      lines.push(line);
+    }
+  }
+  for(let r=0;r<=boardSize-winLength;r++){
+    for(let c=0;c<=boardSize-winLength;c++){
+      let line=[];for(let k=0;k<winLength;k++)line.push((r+k)*boardSize+(c+k));
+      lines.push(line);
+    }
+  }
+  for(let r=0;r<=boardSize-winLength;r++){
+    for(let c=winLength-1;c<boardSize;c++){
+      let line=[];for(let k=0;k<winLength;k++)line.push((r+k)*boardSize+(c-k));
+      lines.push(line);
+    }
+  }
+  return lines.some(line=>line.every(i=>board[i]===player));
+}
+
+function animateWinningCells(player){
+  const winLength=boardSize===3?3:(boardSize===4?4:5);
+  let lines=[];
+  for(let r=0;r<boardSize;r++){
+    for(let c=0;c<=boardSize-winLength;c++){
+      let line=[];for(let k=0;k<winLength;k++)line.push(r*boardSize+c+k);
+      lines.push(line);
+    }
+  }
+  for(let c=0;c<boardSize;c++){
+    for(let r=0;r<=boardSize-winLength;r++){
+      let line=[];for(let k=0;k<winLength;k++)line.push((r+k)*boardSize+c);
+      lines.push(line);
+    }
+  }
+  for(let r=0;r<=boardSize-winLength;r++){
+    for(let c=0;c<=boardSize-winLength;c++){
+      let line=[];for(let k=0;k<winLength;k++)line.push((r+k)*boardSize+(c+k));
+      lines.push(line);
+    }
+  }
+  for(let r=0;r<=boardSize-winLength;r++){
+    for(let c=winLength-1;c<boardSize;c++){
+      let line=[];for(let k=0;k<winLength;k++)line.push((r+k)*boardSize+(c-k));
+      lines.push(line);
+    }
+  }
+  const pattern=lines.find(line=>line.every(i=>board[i]===player));
+  const lineEl=document.getElementById("line");
+  if(pattern){
+    pattern.forEach(i=>{
+      const cellDiv=boardElement.children[i];
+      cellDiv.style.background=playerColors[player];
+      cellDiv.classList.add("animate");
+      setTimeout(()=>cellDiv.classList.remove("animate"),1500);
+    });
+    // ادامه تابع animateWinningCells
+    // موقعیت خط برنده
+    const firstCell = boardElement.children[pattern[0]];
+    const lastCell = boardElement.children[pattern[pattern.length - 1]];
+    const rect1 = firstCell.getBoundingClientRect();
+    const rect2 = lastCell.getBoundingClientRect();
+    const x1 = rect1.left + rect1.width / 2;
+    const y1 = rect1.top + rect1.height / 2;
+    const x2 = rect2.left + rect2.width / 2;
+    const y2 = rect2.top + rect2.height / 2;
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+
+    // تنظیم خط
+    lineEl.style.display = "block";
+    lineEl.style.width = `${length}px`;
+    lineEl.style.transform = `rotate(${angle}rad)`;
+    lineEl.style.left = `${x1}px`;
+    lineEl.style.top = `${y1}px`;
+
+    // بعد از مدتی خط محو می‌شود
+    setTimeout(() => (lineEl.style.display = "none"), 2000);
+  }
+}
+
+function updateStatus() {
+  const status = document.getElementById("status");
+  status.innerText = `نوبت بازیکن ${currentPlayer}`;
+}
+
+function resetGame() {
+  board = Array(boardSize * boardSize).fill("");
+  currentPlayer = "X";
+  gameOver = false;
+  createBoard();
+  updateStatus();
+  document.getElementById("line").style.display = "none";
+}
+
+function updateScoreboard() {
+  const sb = document.getElementById("scoreboard");
+  sb.innerText = `X: ${scores.X} | O: ${scores.O}`;
+}
+
+function addHistory(result) {
+  let history = JSON.parse(localStorage.getItem("history") || "[]");
+  const date = new Date().toLocaleString("fa-IR");
+  history.unshift(`${date}: ${result}`);
+  if (history.length > 20) history.pop();
+  localStorage.setItem("history", JSON.stringify(history));
+  showHistoryList();
+}
+
+function showHistoryList() {
+  const list = document.getElementById("historyList");
+  list.innerHTML = "";
+  let history = JSON.parse(localStorage.getItem("history") || "[]");
+  if (history.length === 0) {
+    list.innerHTML = "<li>هنوز بازی‌ای انجام نشده</li>";
+    return;
+  }
+  history.forEach((item) => {
+    const li = document.createElement("li");
+    li.innerText = item;
+    list.appendChild(li);
+  });
+}
+
+// 🟢 تنظیمات اولیه هنگام بارگذاری صفحه
+window.onload = () => {
+  const theme = localStorage.getItem("theme");
+  const colorX = localStorage.getItem("colorX");
+  const colorO = localStorage.getItem("colorO");
+  const mode = localStorage.getItem("symbolMode");
+  const musicOn = localStorage.getItem("musicOn");
+
+  if (theme) {
+    document.body.className = "theme-" + theme;
+    document.getElementById("theme").value = theme;
+  }
+  if (colorX) {
+    playerColors.X = colorX;
+    document.getElementById("colorX").value = colorX;
+  }
+  if (colorO) {
+    playerColors.O = colorO;
+    document.getElementById("colorO").value = colorO;
+  }
+  if (mode) {
+    document.getElementById("symbolMode").value = mode;
+    if (mode === "emoji") symbols = { X: "🎯", O: "🎮" };
+    else if (mode === "emoji2") symbols = { X: "❤️", O: "💎" };
+  }
+  if (musicOn === "true") {
+    document.getElementById("musicToggle").checked = true;
+  }
+
+  showMenu();
+  showHistoryList();
+};
+</script>
+
+</body>
+</html>
