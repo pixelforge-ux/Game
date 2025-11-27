@@ -718,5 +718,55 @@ window.addEventListener('keydown', function(e){
 
 <!-- filler comments for length -->
 <!-- filler 1 --><!-- filler 2 --><!-- filler 3 --><!-- filler 4 --><!-- filler 5 --><!-- filler 6 --><!-- filler 7 --><!-- filler 8 --><!-- filler 9 --><!-- filler 10 -->
+	<style>
+#gameFooter {
+  position: fixed;
+  bottom: 4px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-family: 'Vazirmatn', sans-serif;
+  font-size: 14px;
+  pointer-events: none;
+  z-index: 9999;
+  text-shadow: 0 0 6px currentColor, 0 0 12px currentColor, 0 0 18px currentColor;
+  animation: neonGlow 2.5s ease-in-out infinite alternate, flicker 1.8s linear infinite;
+}
+@keyframes neonGlow {
+  0% { text-shadow: 0 0 6px currentColor, 0 0 12px currentColor, 0 0 18px currentColor; }
+  50% { text-shadow: 0 0 12px currentColor, 0 0 24px currentColor, 0 0 36px currentColor; }
+  100% { text-shadow: 0 0 6px currentColor, 0 0 12px currentColor, 0 0 18px currentColor; }
+}
+@keyframes flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+  20%, 22%, 24%, 55% { opacity: 0.6; }
+}
+</style>
+
+<footer id="gameFooter">کاری از سید آروین موسوی</footer>
+
+<script>
+function updateFooterTheme() {
+  const footer = document.getElementById('gameFooter');
+  const bodyClass = document.body.className;
+
+  let color = '#333'; // پیش‌فرض روشن برای تم‌های سبک
+  if(bodyClass.includes('theme-dark')) color = '#fff';
+  else if(bodyClass.includes('theme-neon')) color = '#0ff';
+  else if(bodyClass.includes('theme-cyber')) color = '#0ff';
+  else if(bodyClass.includes('theme-cyberglass')) color = '#0ff';
+  else if(bodyClass.includes('theme-classic')) color = '#ff3b3b';
+
+  footer.style.color = color;
+}
+
+// هنگام تغییر تم
+document.getElementById('theme').addEventListener('change', function(){
+  setTimeout(updateFooterTheme, 50);
+});
+
+// هنگام بارگذاری صفحه
+window.addEventListener('load', updateFooterTheme);
+</script>
 </body>
 </html>
