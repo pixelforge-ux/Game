@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
+<script src="https://developer.eitaa.com/eitaa-web-app.js"></script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>دوز </title>
@@ -392,7 +393,7 @@ function resetGame(){ startGame(gameMode) }
 function createBoard(){
   boardElement.innerHTML = '';
   var size = Math.max(3, boardSize);
-  var cellPx = 88;
+  var cellPx = Math.min(88, Math.floor(window.innerWidth / boardSize) - 6);
   if(window.innerWidth < 520) cellPx = 72;
   boardElement.style.gridTemplateColumns = 'repeat(' + size + ',' + cellPx + 'px)';
   boardElement.style.gridTemplateRows = 'repeat(' + size + ',' + cellPx + 'px)';
@@ -411,6 +412,9 @@ function createBoard(){
   }
 }
 function handleCellClick(index, event, el){
+    if(el.classList.contains('locked')) return;
+    el.classList.add('locked');
+    setTimeout(()=>el.classList.remove('locked'),350);
   try{ clickSound.currentTime = 0; clickSound.play(); } catch(e){}
   makeRipple(event, el);
   el.classList.add('spinCell');
@@ -528,8 +532,8 @@ function animateWinningCells(player){
       var width = Math.hypot(last.x - first.x, last.y - first.y) + 50;
       lineEl.style.display = 'block';
       lineEl.style.width = width + 'px';
-      lineEl.style.left = (first.x - brect.x + (first.width/2) - 20) + 'px';
-      lineEl.style.top  = (first.y - brect.y + (first.height/2) - 6) + 'px';
+      lineEl.style.left = (first.x - brect.x + (first.width/2)) + 'px';
+      lineEl.style.top  = (first.y - brect.y + (first.height/2)) + 'px';
       var angle = Math.atan2(last.y - first.y, last.x - first.x) * (180/Math.PI);
       lineEl.style.transform = 'rotate(' + angle + 'deg)';
       setTimeout(function(){ lineEl.style.display = 'none'; }, 1600);
